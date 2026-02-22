@@ -7,6 +7,6 @@ export type Log = {
   date: string;
   tags: string[];
   content: string;
-  images: string[];
+  images?: string[];
   pinned: boolean;
 };
