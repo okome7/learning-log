@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { Log, PeriodTab, SortOrder } from "./types";
 import { loadLogs, saveLogs } from "./storage";
 import { todayISO, startOfWeekISO } from "./utils/date";
+import { LogCard } from "./components/LogCard";
+import { LogDetailModal } from "./components/LogDetailModal";
+import { LogFormModal } from "./components/LogFormModal";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -52,6 +55,19 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortOrder>("new");
 
+  // タブ選択モーダル
+  const [isTagOpen, setIsTagOpen] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  // 三点メニュー
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+
+  // モーダル
+  const [selectedLog, setSelectedLog] = useState<Log | null>(null);
+  const [editingLog, setEditingLog] = useState<Log | null>(null);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+
+  // 統計タブの件数を計算
   const counts = useMemo(() => {
     const t0 = todayISO();
     const w0 = startOfWeekISO();
@@ -125,6 +141,19 @@ export default function App() {
           <FontAwesomeIcon icon={faCalendar} className="icon" />
         </div>
       </main>
+
+      {/* 詳細ログ */}
+      {selectedLog && (
+        <LogDetailModal
+          log={selectedLog}
+          onClose={() => setSelectedLog(null)}
+        />
+      )}
+
+      {/* 追加ボタン */}
+      <button className="fab" onClick={() => setIsAddOpen(true)}>
+        +
+      </button>
     </div>
   );
 }
