@@ -3,6 +3,8 @@ import type { Log, PeriodTab, SortOrder } from "./types";
 import { loadLogs, saveLogs } from "./storage";
 import { todayISO, startOfWeekISO } from "./utils/date";
 import { LogCard } from "./components/LogCard";
+import { LogDetailModal } from "./components/LogDetailModal";
+import { LogFormModal } from "./components/LogFormModal";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -63,6 +65,7 @@ export default function App() {
   // モーダル
   const [selectedLog, setSelectedLog] = useState<Log | null>(null);
   const [editingLog, setEditingLog] = useState<Log | null>(null);
+  const [isAddOpen, setIsAddOpen] = useState(false);
 
   // 統計タブの件数を計算
   const counts = useMemo(() => {
@@ -297,6 +300,19 @@ export default function App() {
           )}
         </div>
       </main>
+
+      {/* 詳細ログ */}
+      {selectedLog && (
+        <LogDetailModal
+          log={selectedLog}
+          onClose={() => setSelectedLog(null)}
+        />
+      )}
+
+      {/* 追加ボタン */}
+      <button className="fab" onClick={() => setIsAddOpen(true)}>
+        +
+      </button>
     </div>
   );
 }
