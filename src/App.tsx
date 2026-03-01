@@ -39,7 +39,6 @@ export default function App() {
 
   // カレンダー
   const [pickedDate, setPickedDate] = useState<string | null>(null);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const dateRef = useRef<HTMLInputElement | null>(null);
 
   // 統計タブの件数を計算
@@ -125,6 +124,19 @@ export default function App() {
     return Array.from(set).sort((a, b) => a.localeCompare(b, "ja"));
   }, [logs]);
 
+  const clearFilters = () => {
+    setQuery("");
+    setPickedDate(null);
+    setSelectedTags([]);
+    setTab("all");
+  };
+
+  const isFiltered =
+    query !== "" ||
+    pickedDate !== null ||
+    selectedTags.length > 0 ||
+    tab !== "all";
+
   // 保存
   useEffect(() => saveLogs(logs), [logs]);
 
@@ -188,26 +200,34 @@ export default function App() {
               placeholder="タイトル・内容で検索"
             />
           </div>
-          <FontAwesomeIcon
-            icon={faCalendar}
-            className="select icon"
-            onClick={() => setIsCalendarOpen((prev) => !prev)}
-          />
+
+          <div
+            className="calendarWrap"
+            onClick={() => {
+              const el = dateRef.current as any;
+              if (!el) return;
+
+              if (typeof el.showPicker === "function") el.showPicker();
+              else dateRef.current?.click();
+            }}
+          >
+            <FontAwesomeIcon icon={faCalendar} className="calendarIcon" />
+
+            <input
+              ref={dateRef}
+              type="date"
+              className="calendarHit"
+              value={pickedDate ?? ""}
+              onChange={(e) => {
+                setPickedDate(e.target.value || null);
+                setTab("all");
+              }}
+              aria-label="日付で絞り込み"
+            />
+          </div>
         </div>
 
-        {isCalendarOpen && (
-          <input
-            type="date"
-            className="calendarInput"
-            onChange={(e) => {
-              setPickedDate(e.target.value);
-              setTab("all"); // タブを解除
-              setIsCalendarOpen(false);
-            }}
-          />
-        )}
-
-        {/* タグを選択 */}
+        {/* フィルター操作（タグ選択・並び替え・クリア） */}
         <div className="controls">
           <button
             type="button"
@@ -233,6 +253,16 @@ export default function App() {
               <option value="old">古い順</option>
             </select>
           </div>
+
+          {isFiltered && (
+            <button
+              type="button"
+              className="select clearBtn"
+              onClick={clearFilters}
+            >
+              <span className="clearMark">×</span>クリア
+            </button>
+          )}
         </div>
 
         {/* ピン留めログ */}

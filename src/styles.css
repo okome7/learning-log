@@ -123,6 +123,45 @@ body {
   font-size: 14px;
 }
 
+.search:hover {
+  filter: brightness(0.98);
+}
+
+.calendarWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  padding: 11px;
+}
+
+.calendarWrap:active {
+  transform: translateY(1px);
+}
+
+.calendarWrap:hover {
+  filter: brightness(0.98);
+}
+
+.calendarIcon {
+  pointer-events: none;
+}
+
+.calendarHit {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0; /* 見えない */
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 /* タグ選択 */
 .controls {
   margin-top: 10px;
@@ -141,15 +180,30 @@ body {
   padding: 8px 10px;
 }
 
-.select.icon {
-  padding: 11px 10px;
-}
-
 .select select {
   border: 0;
   outline: none;
   background: transparent;
   font-size: 14px;
+}
+
+.select:hover {
+  filter: brightness(0.98);
+}
+
+.clearMark {
+  color: #c0362c;
+  font-weight: 900;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.clearBtn {
+  padding: 6px 12px;
+  font-size: 15px;
+  background: #fff;
+  border: 1px solid #ddd;
+  color: #333;
 }
 
 /* ログ */
@@ -167,6 +221,11 @@ body {
   grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: start;
+  position: relative;
+}
+
+.card.menuOpen {
+  z-index: 50;
 }
 
 .card.hasPin {
@@ -180,7 +239,7 @@ body {
 }
 
 .card.clickable:hover {
-  filter: brightness(0.99);
+  filter: brightness(0.98);
 }
 
 .pinCol {
@@ -302,7 +361,7 @@ body {
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  z-index: 50;
+  z-index: 1000;
 }
 
 .menuItem {
@@ -547,7 +606,7 @@ body {
 }
 
 .tagPill:hover {
-  filter: brightness(0.97);
+  filter: brightness(0.98);
 }
 
 .tagPill:active {
