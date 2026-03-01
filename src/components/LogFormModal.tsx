@@ -69,7 +69,10 @@ export function LogFormModal({
     setImages((prev) => prev.filter((x) => x !== src));
   };
 
-  const canSave = title.trim().length > 0;
+  const canSave =
+    title.trim().length > 0 &&
+    date.trim().length > 0 &&
+    content.trim().length > 0;
 
   const handleSave = () => {
     if (!canSave) return;
@@ -114,7 +117,9 @@ export function LogFormModal({
 
           <div className="modalBody">
             <div className="formGroup">
-              <div className="formLabel">タイトル</div>
+              <div className="formLabel">
+                タイトル <span className="required">*</span>
+              </div>
               <input
                 className="textInput"
                 value={title}
@@ -124,7 +129,9 @@ export function LogFormModal({
             </div>
 
             <div className="formGroup">
-              <div className="formLabel">日付</div>
+              <div className="formLabel">
+                日付 <span className="required">*</span>
+              </div>
               <input
                 className="textInput"
                 type="date"
@@ -134,7 +141,9 @@ export function LogFormModal({
             </div>
 
             <div className="formGroup">
-              <div className="formLabel">内容</div>
+              <div className="formLabel">
+                内容 <span className="required">*</span>
+              </div>
               <textarea
                 className="textArea"
                 value={content}
@@ -158,14 +167,15 @@ export function LogFormModal({
                 </button>
 
                 {tags.map((t) => (
-                  <button
-                    type="button"
-                    key={t}
-                    className="tagPill"
-                    onClick={() => removeTag(t)}
-                    title="クリックで削除"
-                  >
-                    {t} <span className="tagX">×</span>
+                  <button type="button" key={t} className="tagPill">
+                    {t}{" "}
+                    <span
+                      className="tagX"
+                      onClick={() => removeTag(t)}
+                      title="クリックで削除"
+                    >
+                      ×
+                    </span>
                   </button>
                 ))}
               </div>
@@ -217,16 +227,15 @@ export function LogFormModal({
                 )}
               </div>
             </div>
-
-            <div className="modalFooter">
-              <button
-                className="saveBtn"
-                onClick={handleSave}
-                disabled={!canSave}
-              >
-                保存する
-              </button>
-            </div>
+          </div>
+          <div className="modalFooter">
+            <button
+              className="saveBtn"
+              onClick={handleSave}
+              disabled={!canSave}
+            >
+              保存する
+            </button>
           </div>
         </div>
       </div>
