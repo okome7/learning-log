@@ -28,7 +28,6 @@ export function LogCard({
   onDelete,
 }: Props) {
   const images = log.images ?? [];
-  const [zoomSrc, setZoomSrc] = useState<string | null>(null);
 
   const hasPin = log.pinned;
 
