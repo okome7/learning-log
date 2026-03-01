@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import type { Log, PeriodTab, SortOrder } from "./types";
 import { loadLogs, saveLogs } from "./storage";
 import { todayISO, startOfWeekISO } from "./utils/date";
 import { LogCard } from "./components/LogCard";
 import { LogDetailModal } from "./components/LogDetailModal";
 import { LogFormModal } from "./components/LogFormModal";
+import TagSelectModal from "./components/TagSelectModal";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -14,41 +15,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faCalendar } from "@fortawesome/free-regular-svg-icons";
 
-const seedLogs = (): Log[] => [
-  {
-    id: crypto.randomUUID(),
-    title: "Reactで学習ログアプリのUIを作成",
-    date: "2026-02-18",
-    tags: ["React", "TypeScript"],
-    content:
-      "ダッシュボード画面のレイアウトを作成し、検索バーと期間タブを配置した。",
-    images: [],
-    pinned: true,
-  },
-  {
-    id: crypto.randomUUID(),
-    title: "サブネットマスクの計算問題を演習",
-    date: "2026-02-19",
-    tags: ["応用情報", "ネットワーク"],
-    content: "2進数への変換手順を覚えて、ホスト数を求める問題を何問か解いた。",
-    images: [],
-    pinned: false,
-  },
-  {
-    id: crypto.randomUUID(),
-    title: "Todoの完了切替機能を実装",
-    date: "2026-02-20",
-    tags: ["React"],
-    content: "チェックボックスで状態を更新し、UIに反映されるようにした。",
-    images: [],
-    pinned: false,
-  },
-];
-
 export default function App() {
   const [logs, setLogs] = useState<Log[]>(() => {
     const loaded = loadLogs();
-    return loaded.length > 0 ? loaded : seedLogs();
+    return loaded;
   });
 
   const [tab, setTab] = useState<PeriodTab>("all");
@@ -66,6 +36,11 @@ export default function App() {
   const [selectedLog, setSelectedLog] = useState<Log | null>(null);
   const [editingLog, setEditingLog] = useState<Log | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
+
+  // カレンダー
+  const [pickedDate, setPickedDate] = useState<string | null>(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const dateRef = useRef<HTMLInputElement | null>(null);
 
   // 統計タブの件数を計算
   const counts = useMemo(() => {
@@ -85,6 +60,8 @@ export default function App() {
     const w0 = startOfWeekISO();
 
     const inPeriod = (l: Log) => {
+      if (pickedDate) return l.date === pickedDate;
+
       if (tab === "today") return l.date === t0;
       if (tab === "week") return l.date >= w0 && l.date <= t0;
       return true;
@@ -117,7 +94,7 @@ export default function App() {
       .sort(sortFn);
 
     return { pinned, normal };
-  }, [logs, tab, query, sort, selectedTags]);
+  }, [logs, tab, query, sort, selectedTags, pickedDate]);
 
   // メニュー外クリックで閉じる
   useEffect(() => {
@@ -141,6 +118,15 @@ export default function App() {
     if (editingLog?.id === id) setEditingLog(null);
     if (menuOpenId === id) setMenuOpenId(null);
   };
+
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    logs.forEach((l) => l.tags.forEach((t) => set.add(t)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "ja"));
+  }, [logs]);
+
+  // 保存
+  useEffect(() => saveLogs(logs), [logs]);
 
   return (
     <div>
@@ -202,8 +188,24 @@ export default function App() {
               placeholder="タイトル・内容で検索"
             />
           </div>
-          <FontAwesomeIcon icon={faCalendar} className="icon" />
+          <FontAwesomeIcon
+            icon={faCalendar}
+            className="select icon"
+            onClick={() => setIsCalendarOpen((prev) => !prev)}
+          />
         </div>
+
+        {isCalendarOpen && (
+          <input
+            type="date"
+            className="calendarInput"
+            onChange={(e) => {
+              setPickedDate(e.target.value);
+              setTab("all"); // タブを解除
+              setIsCalendarOpen(false);
+            }}
+          />
+        )}
 
         {/* タグを選択 */}
         <div className="controls">
@@ -313,6 +315,46 @@ export default function App() {
       <button className="fab" onClick={() => setIsAddOpen(true)}>
         +
       </button>
+
+      {/* 追加モーダル */}
+      {isAddOpen && (
+        <LogFormModal
+          mode="add"
+          allTags={allTags}
+          onClose={() => setIsAddOpen(false)}
+          onSave={(newLog) => {
+            setLogs((prev) => [newLog, ...prev]);
+            setIsAddOpen(false);
+          }}
+        />
+      )}
+      {editingLog && (
+        <LogFormModal
+          mode="edit"
+          initial={editingLog}
+          allTags={allTags}
+          onClose={() => setEditingLog(null)}
+          onSave={(edited) => {
+            setLogs((prev) =>
+              prev.map((l) => (l.id === edited.id ? edited : l)),
+            );
+            setEditingLog(null);
+          }}
+        />
+      )}
+
+      {isTagOpen && (
+        <TagSelectModal
+          allTags={allTags}
+          initialSelected={selectedTags}
+          onClose={() => setIsTagOpen(false)}
+          onApply={(next) => {
+            setSelectedTags(next);
+            setIsTagOpen(false);
+          }}
+          onClear={() => setSelectedTags([])}
+        />
+      )}
     </div>
   );
 }
