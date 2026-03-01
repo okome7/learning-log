@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { Log, PeriodTab, SortOrder } from "./types";
-import { loadLogs, saveLogs } from "./storage";
-import { todayISO, startOfWeekISO } from "./utils/date";
 import { LogCard } from "./components/LogCard";
 import { LogDetailModal } from "./components/LogDetailModal";
 import { LogFormModal } from "./components/LogFormModal";
 import TagSelectModal from "./components/TagSelectModal";
+import { useLogs } from "./hooks/useLogs";
+import { useLogView } from "./hooks/useLogView";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -16,86 +16,34 @@ import {
 import { faCalendar } from "@fortawesome/free-regular-svg-icons";
 
 export default function App() {
-  const [logs, setLogs] = useState<Log[]>(() => {
-    const loaded = loadLogs();
-    return loaded;
-  });
+  const { logs, addLog, updateLog, togglePinned, deleteLog, allTags } =
+    useLogs();
 
   const [tab, setTab] = useState<PeriodTab>("all");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortOrder>("new");
 
-  // タブ選択モーダル
   const [isTagOpen, setIsTagOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  // 三点メニュー
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
 
-  // モーダル
   const [selectedLog, setSelectedLog] = useState<Log | null>(null);
   const [editingLog, setEditingLog] = useState<Log | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
 
-  // カレンダー
   const [pickedDate, setPickedDate] = useState<string | null>(null);
   const dateRef = useRef<HTMLInputElement | null>(null);
 
-  // 統計タブの件数を計算
-  const counts = useMemo(() => {
-    const t0 = todayISO();
-    const w0 = startOfWeekISO();
-    return {
-      today: logs.filter((l) => l.date === t0).length,
-      week: logs.filter((l) => l.date >= w0 && l.date <= t0).length,
-      all: logs.length,
-    };
-  }, [logs]);
+  const { counts, view, isFiltered } = useLogView({
+    logs,
+    tab,
+    query,
+    sort,
+    selectedTags,
+    pickedDate,
+  });
 
-  // ログ表示用のデータを計算
-  const view = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const t0 = todayISO();
-    const w0 = startOfWeekISO();
-
-    const inPeriod = (l: Log) => {
-      if (pickedDate) return l.date === pickedDate;
-
-      if (tab === "today") return l.date === t0;
-      if (tab === "week") return l.date >= w0 && l.date <= t0;
-      return true;
-    };
-
-    const matchQuery = (l: Log) => {
-      if (!q) return true;
-      return (l.title + "\n" + l.content).toLowerCase().includes(q);
-    };
-
-    const matchTags = (l: Log) => {
-      if (selectedTags.length === 0) return true;
-      return selectedTags.every((t) => l.tags.includes(t));
-    };
-
-    const sortFn = (a: Log, b: Log) =>
-      sort === "new" ? (a.date < b.date ? 1 : -1) : a.date > b.date ? 1 : -1;
-
-    const pinned = logs
-      .filter((l) => l.pinned)
-      .filter(inPeriod)
-      .filter(matchQuery)
-      .filter(matchTags);
-
-    const normal = logs
-      .filter((l) => !l.pinned)
-      .filter(inPeriod)
-      .filter(matchQuery)
-      .filter(matchTags)
-      .sort(sortFn);
-
-    return { pinned, normal };
-  }, [logs, tab, query, sort, selectedTags, pickedDate]);
-
-  // メニュー外クリックで閉じる
   useEffect(() => {
     if (!menuOpenId) return;
     const onDown = () => setMenuOpenId(null);
@@ -103,38 +51,19 @@ export default function App() {
     return () => window.removeEventListener("mousedown", onDown);
   }, [menuOpenId]);
 
-  const togglePinned = (id: string) => {
-    setLogs((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, pinned: !l.pinned } : l)),
-    );
-  };
-
-  const deleteLog = (id: string) => {
-    const ok = confirm("このログを削除しますか？");
-    if (!ok) return;
-    setLogs((prev) => prev.filter((l) => l.id !== id));
-    if (selectedLog?.id === id) setSelectedLog(null);
-    if (editingLog?.id === id) setEditingLog(null);
-    if (menuOpenId === id) setMenuOpenId(null);
-  };
-
-  const allTags = useMemo(() => {
-    const set = new Set<string>();
-    logs.forEach((l) => l.tags.forEach((t) => set.add(t)));
-    return Array.from(set).sort((a, b) => a.localeCompare(b, "ja"));
-  }, [logs]);
-
   const clearFilters = () => {
     setQuery("");
     setPickedDate(null);
     setSelectedTags([]);
   };
 
-  const isFiltered =
-    query !== "" || pickedDate !== null || selectedTags.length > 0;
-
-  // 保存
-  useEffect(() => saveLogs(logs), [logs]);
+  const handleDelete = (id: string) => {
+    const deleted = deleteLog(id);
+    if (!deleted) return;
+    if (selectedLog?.id === id) setSelectedLog(null);
+    if (editingLog?.id === id) setEditingLog(null);
+    if (menuOpenId === id) setMenuOpenId(null);
+  };
 
   return (
     <div>
@@ -154,10 +83,8 @@ export default function App() {
           >
             <div className="label">今日</div>
             <div className="numRow">
-              <span className="numRow">
-                <span className="value">{counts.today}</span>
-                <span className="unit">件</span>
-              </span>
+              <span className="value">{counts.today}</span>
+              <span className="unit">件</span>
             </div>
           </button>
 
@@ -285,7 +212,7 @@ export default function App() {
                     setMenuOpenId(null);
                   }}
                   onDelete={() => {
-                    deleteLog(l.id);
+                    handleDelete(l.id);
                     setMenuOpenId(null);
                   }}
                 />
@@ -349,7 +276,7 @@ export default function App() {
           allTags={allTags}
           onClose={() => setIsAddOpen(false)}
           onSave={(newLog) => {
-            setLogs((prev) => [newLog, ...prev]);
+            addLog(newLog);
             setIsAddOpen(false);
           }}
         />
@@ -361,9 +288,7 @@ export default function App() {
           allTags={allTags}
           onClose={() => setEditingLog(null)}
           onSave={(edited) => {
-            setLogs((prev) =>
-              prev.map((l) => (l.id === edited.id ? edited : l)),
-            );
+            updateLog(edited);
             setEditingLog(null);
           }}
         />
