@@ -34,7 +34,7 @@ export function LogCard({
 
   return (
     <div
-      className={`card clickable ${hasPin ? "hasPin" : ""}`}
+      className={`card clickable ${hasPin ? "hasPin" : ""} ${menuOpen ? "menuOpen" : ""}`}
       role="button"
       tabIndex={0}
       onClick={onOpenDetail}
