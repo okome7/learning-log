@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Log } from "../types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -27,6 +28,7 @@ export function LogCard({
   onDelete,
 }: Props) {
   const images = log.images ?? [];
+  const [zoomSrc, setZoomSrc] = useState<string | null>(null);
 
   const hasPin = log.pinned;
 
@@ -64,6 +66,7 @@ export function LogCard({
             {images.slice(0, 2).map((src) => (
               <img key={src} src={src} className="thumb" alt="" />
             ))}
+
             {images.length > 2 && (
               <div className="thumbMore">+{images.length - 2}</div>
             )}
