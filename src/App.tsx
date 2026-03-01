@@ -128,14 +128,10 @@ export default function App() {
     setQuery("");
     setPickedDate(null);
     setSelectedTags([]);
-    setTab("all");
   };
 
   const isFiltered =
-    query !== "" ||
-    pickedDate !== null ||
-    selectedTags.length > 0 ||
-    tab !== "all";
+    query !== "" || pickedDate !== null || selectedTags.length > 0;
 
   // 保存
   useEffect(() => saveLogs(logs), [logs]);

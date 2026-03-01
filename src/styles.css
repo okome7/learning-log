@@ -129,6 +129,7 @@ body {
 
 .calendarWrap {
   display: inline-flex;
+  position: relative;
   align-items: center;
   gap: 8px;
   background: #fff;
