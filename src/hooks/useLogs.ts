@@ -16,10 +16,7 @@ export function useLogs() {
   };
 
   const deleteLog = (id: string) => {
-    const ok = confirm("このログを削除しますか？");
-    if (!ok) return false;
     setLogs((prev) => prev.filter((l) => l.id !== id));
-    return true;
   };
 
   const addLog = (newLog: Log) => {
@@ -36,5 +33,22 @@ export function useLogs() {
     return Array.from(set).sort((a, b) => a.localeCompare(b, "ja"));
   }, [logs]);
 
-  return { logs, setLogs, addLog, updateLog, togglePinned, deleteLog, allTags };
+  const restoreLog = (log: Log, index: number) => {
+    setLogs((prev) => {
+      const next = [...prev];
+      next.splice(index, 0, log);
+      return next;
+    });
+  };
+
+  return {
+    logs,
+    setLogs,
+    addLog,
+    updateLog,
+    togglePinned,
+    deleteLog,
+    allTags,
+    restoreLog,
+  };
 }
