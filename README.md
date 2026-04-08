@@ -1,73 +1,68 @@
-# React + TypeScript + Vite
+# 学習ログアプリ
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 概要
 
-Currently, two official plugins are available:
+日々の学習内容を記録・可視化し、継続的な学習を支援するWebアプリです。  
+検索・タグ・カレンダー機能を通じて、学習履歴を効率的に振り返ることができます。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 使用技術
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React
+- TypeScript
+- HTML / CSS
+- IndexedDB
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 主な機能
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 学習ログ管理
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- 学習内容の登録・編集・削除
+- タグによる分類
+- ピン留め機能（重要なログを上部に固定）
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### 検索・フィルタ機能
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- タイトル・内容を対象とした全文検索
+- タグによる絞り込み
+- 日付フィルタ
+- 並び替え（新しい順など）
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### 可視化機能
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- 今日 / 今週 / 全体の学習件数を表示
+- カレンダーによる学習履歴の可視化
+
+### UX向上機能
+
+- トースト通知（保存・削除時）
+- 削除操作の取り消し（Undo機能）
+- モーダルによるスムーズな操作体験
+
+---
+
+## 工夫した点（技術）
+
+- カスタムフックによる責務分離
+  - useLogs：データ操作
+  - useLogView：表示ロジック（検索・フィルタ・ソート）
+  - useToasts：通知管理  
+    ロジックとUIを分離し、再利用性と保守性を向上
+
+- 状態管理によるUI制御  
+  ルーティングを使わず、モーダルと状態で画面遷移を実現
+
+- 検索機能の実装  
+  タイトルと内容を結合し、大小文字を区別しない検索を実現
+
+---
+
+## 工夫した点（設計・UX）
+
+- 一覧画面から直接編集・削除が可能なUI設計
+- 削除後に「元に戻す」操作を提供し、誤操作を防止
+- シンプルで直感的に使えるインターフェースを意識
+- 視認性の高いレイアウトや余白設計を意識し、学習履歴を振り返りやすいUIを実装
