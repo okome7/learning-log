@@ -1,4 +1,3 @@
-import { useState } from "react";
 import type { Log } from "../types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
